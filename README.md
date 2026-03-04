@@ -67,6 +67,16 @@ The full `/{PREFIX}-start` lifecycle covers 9 phases:
 
 This approach works because it gives the AI agent (and human developers) a repeatable, auditable process. Every issue has a design rationale, every PR traces to an issue, and every completed task has a history.
 
+#### Post-Install: Register GitHub Labels
+
+After the skill generates your project files, you **must** run the label setup script to register labels on your GitHub repository before creating issues:
+
+```bash
+bash scripts/github/setup-labels.sh
+```
+
+This creates the area, type, priority, and status labels that the issue templates and Claude Code commands depend on. Without these labels, the `/{PREFIX}-issue` command cannot apply proper categorization.
+
 ## Installation
 
 ### Claude Code
