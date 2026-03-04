@@ -1,0 +1,22 @@
+{
+  "name": "llm-skills",
+  "owner": {
+    "name": "Ove Ranheim",
+    "email": "oranheim@gmail.com"
+  },
+  "metadata": {
+    "description": "LLM skills for AI coding agents",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "github-issues-workflow",
+      "description": "Issue-driven development workflow for monorepo projects with GitHub issue templates, PR templates, labels, and Claude Code commands",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/github-issues-workflow"
+      ]
+    }
+  ]
+}

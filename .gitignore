@@ -1,0 +1,13 @@
+# macOS
+.DS_Store
+
+# JetBrains IDEs (RustRover, IntelliJ, WebStorm, PyCharm, GoLand, CLion)
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+cmake-build-*/
+
+# Skill build output
+dist/
