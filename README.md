@@ -81,13 +81,13 @@ This creates the area, type, priority, and status labels that the issue template
 
 ### Claude Code
 
-Register this repository as a marketplace plugin:
+Add this repository as a plugin marketplace:
 
 ```
-/install-skill https://github.com/descoped/llm-skills
+/plugin https://github.com/descoped/llm-skills
 ```
 
-Then install the `github-issues-workflow` skill set.
+This opens the plugin browser. Select `github-issues-workflow` to install it. Plugin skills are namespaced as `llm-skills:github-issues-workflow`.
 
 ### Manual
 
