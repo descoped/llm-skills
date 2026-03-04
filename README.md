@@ -81,13 +81,21 @@ This creates the area, type, priority, and status labels that the issue template
 
 ### Claude Code
 
-Add this repository as a plugin marketplace:
+1. Add this repository as a plugin marketplace:
 
-```
-/plugin https://github.com/descoped/llm-skills
-```
+   ```
+   /plugin https://github.com/descoped/llm-skills
+   ```
 
-This opens the plugin browser. Select `github-issues-workflow` to install it. Plugin skills are namespaced as `llm-skills:github-issues-workflow`.
+   Select `github-issues-workflow` from the plugin browser to install it.
+
+2. Restart Claude Code for the skill to become available.
+
+3. Invoke the skill with the slash command:
+
+   ```
+   /llm-skills:github-issues-workflow
+   ```
 
 ### Manual
 
