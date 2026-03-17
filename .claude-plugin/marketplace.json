@@ -17,6 +17,15 @@
       "skills": [
         "./skills/github-issues-workflow"
       ]
+    },
+    {
+      "name": "slack-message",
+      "description": "Write Slack messages — plain text with Slack markup, direct and concise, copy-paste ready",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/slack-message"
+      ]
     }
   ]
 }
