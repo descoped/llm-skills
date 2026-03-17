@@ -51,3 +51,4 @@ python3 <skill-creator-path>/scripts/package_skill.py skills/{skill-name} dist/
 - [Claude Code Plugins](https://code.claude.com/docs/en/plugins)
 - [Plugin Marketplaces](https://code.claude.com/docs/en/plugin-marketplaces)
 - [Plugins Reference](https://code.claude.com/docs/en/plugins-reference)
+- [Claude Code Settings](https://code.claude.com/docs/en/settings)

@@ -103,6 +103,27 @@ Generates a project-specific `/{PREFIX}-code-review` Claude Code command tailore
 
 **Integrates with github-issues-workflow** — if `/{PREFIX}-issue` exists, findings can be turned into issues directly.
 
+### claude-settings
+
+Configures `.claude/settings.json` and `.claude/settings.local.json` for autonomous, unattended Claude Code work. Auto-detects tech stacks and proposes permission, hook, plugin, and MCP configurations.
+
+**What it configures:**
+
+| Category | Examples |
+|----------|----------|
+| Permissions | Tool allow/ask/deny patterns, sensitive file protection, MCP access |
+| Hooks | Pre-commit linting, post-edit formatting (per tech stack) |
+| Safety | Deny patterns for dangerous commands, sandbox configuration |
+| Plugins | Enable/disable plugins, register marketplaces |
+| Attribution | Commit/PR attribution control |
+| Git workflow | Disable built-in instructions when custom skills are installed |
+
+**Key features:**
+- Always creates timestamped backups before modifying settings
+- Shows diff-style summary with security implications before writing
+- Merges with existing settings (never replaces)
+- Separates shared team settings from personal local settings
+
 ### slack-message
 
 Writes Slack messages using plain-text Slack markup — direct, concise, and copy-paste ready.
@@ -126,7 +147,7 @@ Writes Slack messages using plain-text Slack markup — direct, concise, and cop
    /plugin https://github.com/descoped/llm-skills
    ```
 
-   Select a skill (e.g., `github-issues-workflow`, `code-review`, `slack-message`) from the plugin browser to install it.
+   Select a skill (e.g., `github-issues-workflow`, `code-review`, `claude-settings`, `slack-message`) from the plugin browser to install it.
 
 2. Restart Claude Code for the skill to become available.
 
@@ -153,6 +174,9 @@ skills/                          Skill source directories
     SKILL.md                     Generator workflow
     references/                  Categories and tech-specific checks
     assets/                      Command template
+  claude-settings/
+    SKILL.md                     Settings configuration workflow
+    references/                  Schema reference and patterns
   slack-message/
     SKILL.md                     Skill metadata and instructions
 .claude-plugin/
