@@ -125,8 +125,8 @@ Quick-reference for check commands, package managers, workspace patterns, and la
 - **Check commands**:
   ```bash
   swiftlint lint --config .swiftlint.yml --strict
-  xcodebuild -scheme App -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 16 Pro' build
-  xcodebuild -scheme App -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 16 Pro' test
+  xcodebuild -scheme {SCHEME} -sdk iphonesimulator -destination '{DESTINATION}' build
+  xcodebuild -scheme {SCHEME} -sdk iphonesimulator -destination '{DESTINATION}' test
   ```
 - **Label**: `mobile` / color `006b75` (teal) / "iOS mobile app"
 - **Review criteria**: No force unwraps (`try!`, `as!`), proper async/await, UUIDv7 for persisted IDs

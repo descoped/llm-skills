@@ -166,8 +166,8 @@ bun run format:check && bun run lint && bun run check && bun run test && bun run
 **Check commands:**
 ```bash
 swiftlint lint --strict
-xcodebuild -scheme App -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 16 Pro' build
-xcodebuild -scheme App -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 16 Pro' test
+xcodebuild -scheme {SCHEME} -sdk iphonesimulator -destination '{DESTINATION}' build
+xcodebuild -scheme {SCHEME} -sdk iphonesimulator -destination '{DESTINATION}' test
 ```
 
 ## Android / Kotlin
