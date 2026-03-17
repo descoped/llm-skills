@@ -77,6 +77,19 @@ bash scripts/github/setup-labels.sh
 
 This creates the area, type, priority, and status labels that the issue templates and Claude Code commands depend on. Without these labels, the `/{PREFIX}-issue` command cannot apply proper categorization.
 
+### slack-message
+
+Writes Slack messages using plain-text Slack markup — direct, concise, and copy-paste ready.
+
+**What it covers:**
+
+- Slack-specific markup reference (bold, italic, code, links, blockquotes, lists)
+- ASCII table formatting for Slack's monospace code blocks
+- Tone and voice guidelines (direct, personal, no corporate speak)
+- Six message patterns: status update, milestone, bug report, asking for input, PR notification, data summary with table
+
+**Output format:** Raw Slack markup wrapped in a code block — copy-paste directly into Slack.
+
 ## Installation
 
 ### Claude Code
@@ -87,7 +100,7 @@ This creates the area, type, priority, and status labels that the issue template
    /plugin https://github.com/descoped/llm-skills
    ```
 
-   Select `github-issues-workflow` from the plugin browser to install it.
+   Select a skill (e.g., `github-issues-workflow`, `slack-message`) from the plugin browser to install it.
 
 2. Restart Claude Code for the skill to become available.
 
@@ -110,6 +123,8 @@ skills/                          Skill source directories
     scripts/                     Executable templates
     references/                  Tech stack and command specifications
     assets/                      Issue/PR templates, Claude command templates
+  slack-message/
+    SKILL.md                     Skill metadata and instructions
 .claude-plugin/
   marketplace.json               Skills manifest for Claude Code
 ```
