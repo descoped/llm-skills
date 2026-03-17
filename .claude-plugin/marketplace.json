@@ -26,6 +26,15 @@
       "skills": [
         "./skills/slack-message"
       ]
+    },
+    {
+      "name": "code-review",
+      "description": "Generate a project-specific clean code review command. Auto-detects tech stacks and produces a /{PREFIX}-code-review command tailored to the repo's modules, architecture, and languages",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/code-review"
+      ]
     }
   ]
 }

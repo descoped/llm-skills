@@ -77,6 +77,32 @@ bash scripts/github/setup-labels.sh
 
 This creates the area, type, priority, and status labels that the issue templates and Claude Code commands depend on. Without these labels, the `/{PREFIX}-issue` command cannot apply proper categorization.
 
+### code-review
+
+Generates a project-specific `/{PREFIX}-code-review` Claude Code command tailored to the repo's tech stacks, module structure, and architecture.
+
+**How it works:**
+
+1. Auto-detects tech stacks from repo markers (`Cargo.toml`, `package.json`, `go.mod`, etc.)
+2. Maps modules to workspace areas with scope keywords
+3. Generates a self-contained code review command in `.claude/commands/`
+
+**The generated command performs deep analysis across 7 clean code categories:**
+
+| Category | What it catches |
+|----------|----------------|
+| SRP | Functions/types doing too many things |
+| DRY | Duplicated logic, copy-pasted patterns |
+| Dead Code | Unused functions, imports, unreachable branches |
+| Stubs | TODOs, placeholder implementations, empty catch blocks |
+| Complexity | Long functions, deep nesting, too many parameters |
+| Coupling | Circular dependencies, leaky abstractions, feature envy |
+| Naming | Misleading names, generic names, inconsistent conventions |
+
+**Supported tech stacks:** Rust, Python, Go, Java, Kotlin | TypeScript, React, Next.js, Svelte 5 | Swift/iOS, Kotlin/Android
+
+**Integrates with github-issues-workflow** — if `/{PREFIX}-issue` exists, findings can be turned into issues directly.
+
 ### slack-message
 
 Writes Slack messages using plain-text Slack markup — direct, concise, and copy-paste ready.
@@ -100,7 +126,7 @@ Writes Slack messages using plain-text Slack markup — direct, concise, and cop
    /plugin https://github.com/descoped/llm-skills
    ```
 
-   Select a skill (e.g., `github-issues-workflow`, `slack-message`) from the plugin browser to install it.
+   Select a skill (e.g., `github-issues-workflow`, `code-review`, `slack-message`) from the plugin browser to install it.
 
 2. Restart Claude Code for the skill to become available.
 
@@ -123,6 +149,10 @@ skills/                          Skill source directories
     scripts/                     Executable templates
     references/                  Tech stack and command specifications
     assets/                      Issue/PR templates, Claude command templates
+  code-review/
+    SKILL.md                     Generator workflow
+    references/                  Categories and tech-specific checks
+    assets/                      Command template
   slack-message/
     SKILL.md                     Skill metadata and instructions
 .claude-plugin/
