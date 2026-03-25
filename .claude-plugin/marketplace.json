@@ -44,6 +44,15 @@
       "skills": [
         "./skills/claude-settings"
       ]
+    },
+    {
+      "name": "domain-finder",
+      "description": "Find creative, available domain names for projects and businesses. Generates candidates across 5 naming strategies (invented words, blends, metaphors, compressed phrases, modified words), checks real availability via whois, and iterates until the user finds one they love",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/domain-finder"
+      ]
     }
   ]
 }

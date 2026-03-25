@@ -124,6 +124,22 @@ Configures `.claude/settings.json` and `.claude/settings.local.json` for autonom
 - Merges with existing settings (never replaces)
 - Separates shared team settings from personal local settings
 
+### domain-finder
+
+Finds creative, available domain names for projects and businesses. Generates 40-50 candidates per batch, checks real availability via `whois`, and iterates until you find one you love.
+
+**5 naming strategies:**
+
+| Strategy | Weight | Example |
+|----------|--------|---------|
+| Invented words | ~40% | `cletho`, `brantol`, `jempra` |
+| Word blends | ~20% | `pagefold`, `markfold` |
+| Metaphors | ~15% | `kiln`, `loom`, `bastion` |
+| Compressed phrases | ~10% | `structo`, `flipa` |
+| Modified real words | ~15% | `timbr`, `krystal`, `simpel` |
+
+**Supports:** `.com`, `.dev`, `.io`, `.no`, `.ai`, and any TLD.
+
 ### slack-message
 
 Writes Slack messages using plain-text Slack markup — direct, concise, and copy-paste ready.
@@ -147,7 +163,7 @@ Writes Slack messages using plain-text Slack markup — direct, concise, and cop
    /plugin https://github.com/descoped/llm-skills
    ```
 
-   Select a skill (e.g., `github-issues-workflow`, `code-review`, `claude-settings`, `slack-message`) from the plugin browser to install it.
+   Select a skill (e.g., `github-issues-workflow`, `code-review`, `claude-settings`, `domain-finder`, `slack-message`) from the plugin browser to install it.
 
 2. Restart Claude Code for the skill to become available.
 
@@ -177,6 +193,9 @@ skills/                          Skill source directories
   claude-settings/
     SKILL.md                     Settings configuration workflow
     references/                  Schema reference and patterns
+  domain-finder/
+    SKILL.md                     Domain name discovery workflow
+    references/                  Naming strategies and availability checks
   slack-message/
     SKILL.md                     Skill metadata and instructions
 .claude-plugin/
