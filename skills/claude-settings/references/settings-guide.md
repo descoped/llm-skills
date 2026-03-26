@@ -19,13 +19,7 @@ Complete reference for `.claude/settings.json` and `.claude/settings.local.json`
 
 ## Schema
 
-Always include the `$schema` line for editor autocompletion and validation:
-
-```json
-{
-  "$schema": "https://json.schemastore.org/claude-code-settings.json"
-}
-```
+The official JSON schema is available at `https://json.schemastore.org/claude-code-settings.json` for editor autocompletion. However, omit `$schema` from generated settings — it adds noise and Claude Code doesn't need it for validation. Users can add it manually if they want IDE support.
 
 ---
 
@@ -450,7 +444,6 @@ This removes Claude's default commit/PR behavior, letting your custom skills tak
 
 Everything the team needs for productive work:
 
-- `$schema` for editor autocompletion
 - `permissions.allow` — core tool permissions
 - `permissions.deny` — sensitive files, unwanted skills
 - `env` — feature flags the team uses
@@ -476,7 +469,9 @@ Everything specific to your local setup:
 
 ```json
 {
-  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  },
   "permissions": {
     "allow": [
       "Bash(BODY=*)",
@@ -492,7 +487,8 @@ Everything specific to your local setup:
       "Read(./.env.*)",
       "Read(./secrets/**)"
     ]
-  }
+  },
+  "enabledPlugins": {}
 }
 ```
 
@@ -500,7 +496,6 @@ Everything specific to your local setup:
 
 ```json
 {
-  "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "permissions": {
     "allow": [
       "Bash(*)",
@@ -540,7 +535,8 @@ Everything specific to your local setup:
     "pr": ""
   },
   "includeGitInstructions": false,
-  "enableAllProjectMcpServers": true
+  "enableAllProjectMcpServers": true,
+  "enabledPlugins": {}
 }
 ```
 
