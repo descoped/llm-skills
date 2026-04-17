@@ -50,22 +50,54 @@ Default to global unless the user specifies project-scope — global is the comm
 
 ### Phase 2 — Copy the script
 
-Copy `assets/statusline.sh` from this skill to the chosen location:
+**Step 1 — Back up any existing `statusline.sh`.** Users often have a custom status line they'll want to revert to. Skip this step if no existing file is found.
+
+```bash
+# Global install
+if [ -f ~/.claude/statusline.sh ]; then
+  cp ~/.claude/statusline.sh ~/.claude/statusline.sh.bak.$(date +%Y%m%d-%H%M%S)
+  echo "Backed up to: ~/.claude/statusline.sh.bak.$(date +%Y%m%d-%H%M%S)"
+fi
+
+# Project install
+if [ -f .claude/statusline.sh ]; then
+  cp .claude/statusline.sh .claude/statusline.sh.bak.$(date +%Y%m%d-%H%M%S)
+  echo "Backed up to: .claude/statusline.sh.bak.$(date +%Y%m%d-%H%M%S)"
+fi
+```
+
+Tell the user the exact backup path so they know how to restore.
+
+**Step 2 — Copy `assets/statusline.sh`** from this skill to the chosen location:
 
 - Global: `~/.claude/statusline.sh`
 - Project: `<repo>/.claude/statusline.sh`
 
-Make it executable:
+**Step 3 — Make it executable:**
 
 ```bash
 chmod +x ~/.claude/statusline.sh
 ```
 
-**Before overwriting an existing file,** back it up with a timestamped `.bak` suffix and tell the user where the backup went. Users often have a custom status line they want to revert to if they don't like this one.
-
 ### Phase 3 — Register it in settings.json
 
-Claude Code reads the status line command from `settings.json`. For a global install:
+**Step 1 — Back up existing `settings.json`** before the `jq` merge. The merge is safe in principle, but a `jq` failure mid-pipe or a user who wants to revert the `statusLine` key needs a safety net.
+
+```bash
+# Global
+if [ -f ~/.claude/settings.json ]; then
+  cp ~/.claude/settings.json ~/.claude/settings.json.bak.$(date +%Y%m%d-%H%M%S)
+  echo "Backed up to: ~/.claude/settings.json.bak.$(date +%Y%m%d-%H%M%S)"
+fi
+
+# Project
+if [ -f .claude/settings.json ]; then
+  cp .claude/settings.json .claude/settings.json.bak.$(date +%Y%m%d-%H%M%S)
+  echo "Backed up to: .claude/settings.json.bak.$(date +%Y%m%d-%H%M%S)"
+fi
+```
+
+**Step 2 — Register the `statusLine` key.** Claude Code reads it from `settings.json`. For a global install:
 
 ```json
 {
@@ -89,9 +121,7 @@ For a project install, use the project-relative path:
 }
 ```
 
-**Merge the `statusLine` key into existing settings — never overwrite the whole file.** Users accumulate permissions, hooks, and plugin config in `settings.json`; a blind overwrite wipes it all out.
-
-Use `jq` for the merge:
+**Step 3 — Merge the key with `jq` — never overwrite the whole file.** Users accumulate permissions, hooks, and plugin config in `settings.json`; a blind overwrite wipes it all out.
 
 ```bash
 jq '. + {statusLine: {type: "command", command: "bash ~/.claude/statusline.sh", padding: 0}}' \
