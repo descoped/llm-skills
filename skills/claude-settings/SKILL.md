@@ -42,57 +42,42 @@ Consult `references/settings-guide.md` for the complete schema reference, permis
 4. Detect linter/formatter configs (`.eslintrc`, `ruff.toml`, `rustfmt.toml`, `.swiftlint.yml`, etc.)
 5. Check for `.mcp.json` (MCP servers)
 6. Check for existing plugins in settings
+7. Check for custom git workflow skills in `.claude/commands/`
+8. Read the user's `~/.claude/CLAUDE.md` for any security guidelines or attribution preferences
 
-### Phase 2: Ask User Preferences
+### Phase 2: Generate and Present Complete Configuration
 
-Present the user with these choices:
+**Do NOT ask 14 individual questions.** Instead, auto-detect everything from Phase 1 and generate a complete, opinionated configuration. Present it as a single proposal with a brief summary of key choices. Let the user approve, reject, or request changes.
 
-1. **Which file(s)?** — `settings.json` (shared), `settings.local.json` (personal), or both
-2. **Permission level** — determines what goes into `permissions.allow`:
-   - **Standard** — `Bash(BODY=*)`, `Bash(FIXED=*)` + core tools (recommended for shared repos)
-   - **Full autonomy** — `Bash(*)` + core tools + `mcp__*` (maximum unattended work)
-3. **Ask-tier permissions?** — Offer `permissions.ask` for semi-dangerous commands that should still prompt. Common candidates: `Bash(git push *)`, `Bash(git push --force *)`, `Bash(docker *)`. These allow the command but require a confirmation click — good middle ground between full autonomy and denial.
-4. **Sensitive file protection?** — Offer standard deny patterns for secrets and credentials. Default ON:
-   - `Read(./.env)`, `Read(./.env.*)`, `Read(./secrets/**)`, `Read(./config/credentials.json)`
-   - Let user add or remove patterns based on their project structure
-5. **Skill deny list?** — Offer to deny example-skills that may trigger unexpectedly (show list, let user select)
-6. **Hooks?** — Propose auto-detected linting/formatting hooks based on tech stack. Ask which to include and whether they go in shared or local settings.
-7. **Safety deny patterns?** — Propose deny rules for dangerous operations based on detected directory structure (e.g., data dirs, output dirs). These typically go in `settings.local.json`.
-8. **Plugin preferences?** — Show detected/available plugins, ask which to enable/disable
-9. **MCP servers?** — If `.mcp.json` exists, offer `enableAllProjectMcpServers: true` or selective `enabledMcpjsonServers`
-10. **Environment variables?** — Propose relevant feature flags (e.g., `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS`)
-11. **Attribution?** — Offer to configure commit and PR attribution. Options:
-    - Default (includes `Co-Authored-By: Claude` and emoji link)
-    - Custom text
-    - Disabled (`"attribution": { "commit": "", "pr": "" }`)
-12. **Git instructions?** — If a custom git workflow skill is detected (e.g., `github-issues-workflow` commands in `.claude/commands/`), offer `includeGitInstructions: false` to disable built-in git workflow instructions that may conflict.
-13. **Sandbox?** — For security-conscious teams, offer sandbox configuration with filesystem and network restrictions. See `references/settings-guide.md` for the full sandbox schema.
-14. **Additional directories?** — For monorepos or multi-repo setups, offer `permissions.additionalDirectories` to grant Claude access to sibling directories outside the working tree (e.g., `["../shared-libs/", "../docs/"]`).
+**Default configuration strategy:**
 
-### Phase 3: Build Configuration
+1. **Permission level**: Standard (`Bash(BODY=*)`, `Bash(FIXED=*)` + core tools). This is the right default for most projects.
+2. **Sensitive file protection**: Always ON — deny `Read(./.env)`, `Read(./.env.*)`, `Read(./secrets/**)`
+3. **Example skill deny list**: Always include — prevents accidental triggering of document/artifact skills
+4. **MCP servers**: If `.mcp.json` exists, include `enableAllProjectMcpServers: true`. If Playwright is detected in plugins, add `mcp__playwright__*` and `mcp__plugin_playwright_playwright__*` to allow.
+5. **Environment variables**: Include `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS: "1"` by default
+6. **Attribution**: Check user's `~/.claude/CLAUDE.md` for attribution preferences. If it says to disable attribution, set `"attribution": { "commit": "", "pr": "" }`. Otherwise, leave as default.
+7. **Git instructions**: If custom git workflow commands exist in `.claude/commands/`, set `includeGitInstructions: false`
+8. **Plugins**: Preserve any existing `enabledPlugins` from current settings
+9. **`$schema`**: Always omit — it adds noise and Claude Code doesn't need it for validation
 
-Assemble the settings JSON using patterns from `references/settings-guide.md`.
+**Generate the complete JSON** and present it in a single code block. Below it, add a short bullet list of key choices and why. Example:
 
-**For `settings.json` (shared):**
-- `$schema` — always include for editor autocompletion
-- `permissions.allow` — core tool permissions based on chosen level
-- `permissions.ask` — semi-dangerous commands requiring confirmation
-- `permissions.deny` — sensitive files, unwanted skills
-- `permissions.additionalDirectories` — sibling directories if needed
-- `env` — feature flags
-- `attribution` — commit and PR attribution preferences
-- `includeGitInstructions` — disable if custom git workflow skills are installed
-- `enableAllProjectMcpServers` or `enabledMcpjsonServers`
-- `enabledPlugins` — team-relevant plugins
-- `sandbox` — filesystem and network restrictions if requested
+```
+**Proposed `.claude/settings.json`:**
+[full JSON here]
 
-**For `settings.local.json` (personal):**
-- `hooks` — linting/formatting hooks for the detected tech stack
-- `permissions.deny` — personal safety guards (protect data dirs)
-- `disabledMcpjsonServers` — servers to disable locally
-- `enabledPlugins` — personal overrides
+**Key choices:**
+- Standard permissions (Bash(BODY=*)/Bash(FIXED=*) + core tools) — eliminates prompts while maintaining rtk hook compatibility
+- Sensitive file deny — .env and secrets protected
+- Example skills denied — prevents accidental document/artifact skill triggering
+- Agent teams enabled — allows parallel agent work
+- Attribution disabled — per your security guidelines
+```
 
-### Phase 4: Backup Existing Settings
+Then ask: "Want me to write this? Any changes?"
+
+### Phase 3: Backup Existing Settings
 
 Before any modification, **always** create timestamped backups of existing settings files:
 
@@ -104,33 +89,57 @@ cp .claude/settings.local.json .claude/settings.local.json.bak.$(date +%Y%m%d-%H
 
 Tell the user the backup path(s) so they know how to restore if needed.
 
-### Phase 5: Present Changes and Get Approval
+### Phase 4: Write and Verify
 
-1. **Show the current settings** (if any) alongside the proposed changes
-2. **For each change, explain clearly:**
-   - What the setting does
-   - Why it's being added or changed
-   - What the practical effect is (e.g., "this means Claude will no longer ask permission before running bash commands")
-   - Any security implications (e.g., "`Bash(*)` allows ALL shell commands including destructive ones — deny patterns are your safety net")
-3. **Show a diff-style summary** — highlight what's added, changed, or removed compared to existing settings
-4. **Wait for explicit approval** before writing anything. Do not proceed on ambiguity — if the user seems uncertain, explain further.
-
-### Phase 6: Write and Verify
-
-1. After user approves, write the file(s)
+1. After user approves, write the file(s) using the Write tool
 2. Read back the written files to confirm they're valid JSON
 3. If `.claude/` was created, verify that `.claude/settings.local.json` is in `.gitignore`
-4. Remind the user:
-   - Where backups are stored (and how to restore: `cp .claude/settings.json.bak.TIMESTAMP .claude/settings.json`)
-   - That `settings.local.json` is gitignored automatically by Claude Code
-   - They need to restart Claude Code or run `/reload-plugins` for changes to take effect
+4. Remind the user that they may need to restart Claude Code or run `/reload-plugins` for changes to take effect
 
 **Do NOT commit** — let the user decide when to commit.
 
+## Required Fields for `settings.json`
+
+Every generated `settings.json` MUST include all of these fields. Missing any of them is a bug:
+
+```json
+{
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  },
+  "permissions": {
+    "allow": [
+      "Bash(BODY=*)",
+      "Bash(FIXED=*)",
+      "Read",
+      "Write",
+      "Edit",
+      "WebFetch",
+      "WebSearch"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./secrets/**)"
+    ]
+  },
+  "enabledPlugins": {}
+}
+```
+
+Additional fields to include when detected:
+- `"mcp__playwright__*"` and `"mcp__plugin_playwright_playwright__*"` in `permissions.allow` — when Playwright plugin is enabled
+- `"mcp__*"` in `permissions.allow` — when the user requests full autonomy or has MCP servers
+- `"enableAllProjectMcpServers": true` — when `.mcp.json` exists
+- `"attribution": { "commit": "", "pr": "" }` — when user's CLAUDE.md disables attribution
+- `"includeGitInstructions": false` — when custom git workflow commands are detected
+- Example skill deny patterns — always include (see `references/settings-guide.md` for the full list)
+
 ## Key Principles
 
+- **Action-oriented** — detect, generate, propose, write. Do not stall on questions.
+- **One proposal, one approval** — present the complete configuration once. Do not ask 14 individual questions.
 - **Always backup first** — never modify settings without creating a timestamped backup
-- **Informed consent** — explain every change and its implications before writing; the user must approve explicitly
 - **Eliminate prompts** — the primary goal is configuring permissions so Claude works without constant approval dialogs
 - **Safe defaults** — always include deny patterns for sensitive files (`.env`, secrets)
 - **Shared vs personal** — team-wide settings in `settings.json`; personal workflow in `settings.local.json`
