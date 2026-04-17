@@ -53,6 +53,24 @@
       "skills": [
         "./skills/domain-finder"
       ]
+    },
+    {
+      "name": "statusline",
+      "description": "Install and customize the Claude Code status line. Self-contained Bash script showing project, auto-compressed path, git branch with dirty-state flags, model with context window and thinking level, context-usage bar with tokens, and session cost. Handles global or project-scoped install, merges settings.json safely, and documents color/segment/threshold customization",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/statusline"
+      ]
+    },
+    {
+      "name": "vite-chunk-split",
+      "description": "Fix Vite single-chunk bundles that cause slow page loads and break MCP Playwright testing. Auto-detects heavy dependencies, converts static page imports to React.lazy, adds Suspense boundaries in layout components, and configures vendor chunk splitting in vite.config.ts. Works for React, Vue, and SvelteKit Vite projects",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/vite-chunk-split"
+      ]
     }
   ]
 }

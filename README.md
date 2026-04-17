@@ -4,7 +4,49 @@ A collection of LLM skills for AI coding agents. Skills are customizable workflo
 
 ## Skills
 
-### github-issues-workflow
+| Skill | What it does |
+|---|---|
+| [github-issues-workflow](#github-issues-workflow) | Bootstrap an issue-driven development workflow for monorepo projects |
+| [code-review](#code-review) | Generate a project-specific clean code review command |
+| [claude-settings](#claude-settings) | Configure Claude Code for autonomous, unattended work |
+| [domain-finder](#domain-finder) | Find creative, available domain names for projects and businesses |
+| [statusline](#statusline) | Install and customize a compact Claude Code status line |
+| [vite-chunk-split](#vite-chunk-split) | Fix Vite single-chunk bundles that slow page loads |
+| [slack-message](#slack-message) | Write Slack messages with proper Slack markup |
+
+## Installation
+
+### Claude Code
+
+1. Add this repository as a plugin marketplace:
+
+   ```
+   /plugin https://github.com/descoped/llm-skills
+   ```
+
+2. Select a skill from the plugin browser to install it.
+
+3. Restart Claude Code for the skill to become available.
+
+### Manual
+
+Copy the skill directory into your project's `.claude/skills/` or use the packaged `.skill` file from the `dist/` directory.
+
+## Quick Start
+
+Once a skill is installed, invoke it with a slash command using the `/llm-skills:` namespace:
+
+```
+/llm-skills:github-issues-workflow
+/llm-skills:code-review
+/llm-skills:claude-settings
+```
+
+You can also mention the skill's purpose in plain language — Claude will trigger the skill automatically based on its description. For example, saying "help me find a domain name for my new project" triggers `domain-finder`.
+
+---
+
+## github-issues-workflow
 
 Bootstraps an issue-driven development workflow for monorepo projects. Given a project's tech stack and repo details, it generates all the infrastructure needed for structured issue tracking with Claude Code.
 
@@ -19,7 +61,7 @@ Bootstraps an issue-driven development workflow for monorepo projects. Given a p
 
 **Supported tech stacks:** Rust, Python, Go, Java | React, Next.js, Svelte v5 | iOS, Android | Tooling crates
 
-#### The Workflow Concept
+### The Workflow Concept
 
 This skill implements an **issue-driven development workflow** — a structured process where every code change traces back to a GitHub issue and follows a predictable lifecycle from creation to merge.
 
@@ -67,7 +109,7 @@ The full `/{PREFIX}-start` lifecycle covers 9 phases:
 
 This approach works because it gives the AI agent (and human developers) a repeatable, auditable process. Every issue has a design rationale, every PR traces to an issue, and every completed task has a history.
 
-#### Post-Install: Register GitHub Labels
+### Post-Install: Register GitHub Labels
 
 After the skill generates your project files, you **must** run the label setup script to register labels on your GitHub repository before creating issues:
 
@@ -77,7 +119,9 @@ bash scripts/github/setup-labels.sh
 
 This creates the area, type, priority, and status labels that the issue templates and Claude Code commands depend on. Without these labels, the `/{PREFIX}-issue` command cannot apply proper categorization.
 
-### code-review
+---
+
+## code-review
 
 Generates a project-specific `/{PREFIX}-code-review` Claude Code command tailored to the repo's tech stacks, module structure, and architecture.
 
@@ -103,7 +147,9 @@ Generates a project-specific `/{PREFIX}-code-review` Claude Code command tailore
 
 **Integrates with github-issues-workflow** — if `/{PREFIX}-issue` exists, findings can be turned into issues directly.
 
-### claude-settings
+---
+
+## claude-settings
 
 Configures `.claude/settings.json` and `.claude/settings.local.json` for autonomous, unattended Claude Code work. Auto-detects tech stacks and proposes permission, hook, plugin, and MCP configurations.
 
@@ -119,12 +165,15 @@ Configures `.claude/settings.json` and `.claude/settings.local.json` for autonom
 | Git workflow | Disable built-in instructions when custom skills are installed |
 
 **Key features:**
+
 - Always creates timestamped backups before modifying settings
 - Shows diff-style summary with security implications before writing
 - Merges with existing settings (never replaces)
 - Separates shared team settings from personal local settings
 
-### domain-finder
+---
+
+## domain-finder
 
 Finds creative, available domain names for projects and businesses. Generates 40-50 candidates per batch, checks real availability via `whois`, and iterates until you find one you love.
 
@@ -140,7 +189,60 @@ Finds creative, available domain names for projects and businesses. Generates 40
 
 **Supports:** `.com`, `.dev`, `.io`, `.no`, `.ai`, and any TLD.
 
-### slack-message
+---
+
+## statusline
+
+Installs and customizes a compact Claude Code status line. Self-contained Bash script showing project, auto-compressed path, git branch with dirty-state flags, model name with context window and thinking level, context-usage bar with tokens, and session cost.
+
+**Example output:**
+
+```
+krantho  ~/Code/krantho  ⎇ master [?!+]  │  opus-4-7[1m] [think:max]  │  ███░░░░░ 42%  │  ↑450k ↓85k  │  $2.145
+```
+
+**Key features:**
+
+| Feature | What it does |
+|---|---|
+| Adaptive path compression | Four tiers: full → `../parent/leaf` → `../leaf` → `../…truncated`. Uses `..` for hidden path segments, `…` for a truncated leaf |
+| Git dirty flags | `?` untracked, `!` modified, `+` staged, `x` deleted — single `git status` pass |
+| Model label | Strips `claude-` prefix, extracts context-window tag (`[1m]`, `[200k]`), removes thinking markers (shown separately) |
+| Color-coded context bar | Green <50%, yellow <80%, red ≥80% |
+| Detached-HEAD fallback | Shows short SHA when `branch --show-current` is empty |
+
+**Install scope:** global (`~/.claude/`) or per-project (`<repo>/.claude/`). The skill merges `settings.json` safely via `jq` — never overwrites.
+
+**Dependencies:** `jq` required. `git` and `tput` optional (features degrade gracefully).
+
+---
+
+## vite-chunk-split
+
+Fixes Vite single-chunk bundles that cause slow page loads and break MCP Playwright testing. Converts static page imports to `React.lazy`, adds Suspense boundaries, and configures vendor chunk splitting in `vite.config.ts`.
+
+**When to use:**
+
+- Build output has a single JS chunk over 500KB
+- MCP Playwright times out on `browser_navigate` or `browser_snapshot`
+- Pages load heavy libraries they don't use (ReactFlow on a settings page, CodeMirror on a dashboard)
+
+**6-step workflow:**
+
+1. Diagnose current chunk distribution
+2. Identify the router and static page imports
+3. Map heavy dependencies to consumer pages
+4. Convert static imports to `React.lazy` (keeping layouts static)
+5. Add `<Suspense>` boundaries inside layouts
+6. Configure `manualChunks` for vendor splitting
+
+**Supports:** React, Vue (`defineAsyncComponent`), and SvelteKit (already lazy by default).
+
+**Known-heavy library table** covers `monaco-editor`, `@codemirror/*`, `@mui/material`, `recharts`, `react-syntax-highlighter`, `@xyflow/react`, and more.
+
+---
+
+## slack-message
 
 Writes Slack messages using plain-text Slack markup — direct, concise, and copy-paste ready.
 
@@ -153,29 +255,7 @@ Writes Slack messages using plain-text Slack markup — direct, concise, and cop
 
 **Output format:** Raw Slack markup wrapped in a code block — copy-paste directly into Slack.
 
-## Installation
-
-### Claude Code
-
-1. Add this repository as a plugin marketplace:
-
-   ```
-   /plugin https://github.com/descoped/llm-skills
-   ```
-
-   Select a skill (e.g., `github-issues-workflow`, `code-review`, `claude-settings`, `domain-finder`, `slack-message`) from the plugin browser to install it.
-
-2. Restart Claude Code for the skill to become available.
-
-3. Invoke the skill with the slash command:
-
-   ```
-   /llm-skills:github-issues-workflow
-   ```
-
-### Manual
-
-Copy the skill directory into your project or use the packaged `.skill` file from the `dist/` directory.
+---
 
 ## Repository Structure
 
@@ -196,6 +276,12 @@ skills/                          Skill source directories
   domain-finder/
     SKILL.md                     Domain name discovery workflow
     references/                  Naming strategies and availability checks
+  statusline/
+    SKILL.md                     Install + customize workflow
+    assets/statusline.sh         Self-contained status line script
+    references/                  Post-install customization guide
+  vite-chunk-split/
+    SKILL.md                     Chunk-split workflow (React/Vue/SvelteKit)
   slack-message/
     SKILL.md                     Skill metadata and instructions
 .claude-plugin/
