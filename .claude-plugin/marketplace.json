@@ -71,6 +71,15 @@
       "skills": [
         "./skills/vite-chunk-split"
       ]
+    },
+    {
+      "name": "session-snapshot",
+      "description": "Save and restore Claude Code session state across /compact boundaries. Writes a dated handoff markdown to .claude/session-state/ before compact (goal, locked-in decisions, WIP, next-step sequence, open questions, key file anchors) and reads + deletes the most recent file after compact to rehydrate context. Project-local, gitignored, privacy-guarded",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/session-snapshot"
+      ]
     }
   ]
 }

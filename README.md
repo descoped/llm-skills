@@ -13,6 +13,7 @@ A collection of LLM skills for AI coding agents. Skills are customizable workflo
 | [statusline](#statusline) | Install and customize a compact Claude Code status line |
 | [vite-chunk-split](#vite-chunk-split) | Fix Vite single-chunk bundles that slow page loads |
 | [slack-message](#slack-message) | Write Slack messages with proper Slack markup |
+| [session-snapshot](#session-snapshot) | Save and restore Claude Code session state across `/compact` boundaries |
 
 ## Installation
 
@@ -257,6 +258,28 @@ Writes Slack messages using plain-text Slack markup — direct, concise, and cop
 
 ---
 
+## session-snapshot
+
+Saves and restores Claude Code session state across `/compact` boundaries. Writes a dated handoff markdown to `.claude/session-state/` before compact, reads and deletes it after — so the next turn resumes with full intent, decisions, and the next-step sequence intact.
+
+**Two verbs:**
+
+| Verb | When | What it does |
+|---|---|---|
+| `save` | Before `/compact` — "we need to compact", "context is full", "dump the plan" | Writes `YYYYMMDDTHHMMZ_session-state.md` with goal, locked-in decisions, WIP, next-step sequence, open questions, key file anchors |
+| `restore` | After `/compact` — "catch up", "pick up where we left off" | Reads the most recent snapshot, summarizes in 3–5 lines, deletes the file |
+
+**Key properties:**
+
+- **Project-local, gitignored, ephemeral** — snapshots live in `<repo>/.claude/session-state/` and are auto-removed after restore
+- **Privacy guardrail** — no IPs, hostnames, account IDs, credentials, or device identifiers; uses RFC 5737 / RFC 2606 reserved ranges for examples
+- **First-run setup** is invisible — creates the directory and appends a `.gitignore` entry on first `save`
+- **UTC-prefixed filenames** sort chronologically; minute-precision handles same-day snapshots
+
+**Why it matters:** `/compact` replaces conversation history with a model-generated summary that's strong on "what happened" but weak on "what's decided, what's next, what's blocked". In long sessions, the lossy summary becomes the bottleneck. A snapshot shifts the load: before compact, Claude + user jointly produce a high-signal handoff doc; after compact, Claude reads it and resumes.
+
+---
+
 ## Repository Structure
 
 ```
@@ -284,6 +307,8 @@ skills/                          Skill source directories
     SKILL.md                     Chunk-split workflow (React/Vue/SvelteKit)
   slack-message/
     SKILL.md                     Skill metadata and instructions
+  session-snapshot/
+    SKILL.md                     Save + restore workflow (pre-/post-compact)
 .claude-plugin/
   marketplace.json               Skills manifest for Claude Code
 ```
