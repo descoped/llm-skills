@@ -11,14 +11,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Structure
 
+Each skill is packaged as its own isolated plugin. The plugin root contains a `skills/<skill-name>/` directory so Claude Code's per-plugin skill discovery only finds that one skill — installing one plugin never exposes skills from another.
+
 ```
-skills/                    # Skill source directories
-  {skill-name}/
-    SKILL.md               # Required: frontmatter (name, description) + instructions
-    scripts/               # Executable code (Python/Bash)
-    references/            # Documentation loaded into context as needed
-    assets/                # Templates and files used in output (not loaded into context)
-dist/                      # Packaged .skill files for distribution
+plugins/                           # One plugin directory per skill
+  {skill-name}/                    # Plugin root (source path in marketplace.json)
+    skills/{skill-name}/
+      SKILL.md                     # Required: frontmatter (name, description) + instructions
+      scripts/                     # Executable code (Python/Bash)
+      references/                  # Documentation loaded into context as needed
+      assets/                      # Templates and files used in output (not loaded into context)
+.claude-plugin/
+  marketplace.json                 # Plugin manifest
+dist/                              # Packaged .skill files for distribution
 ```
 
 ## Skill Anatomy
@@ -27,12 +32,16 @@ Each skill requires a `SKILL.md` with YAML frontmatter (`name`, `description`) a
 
 ## Marketplace
 
-Skills are registered in `.claude-plugin/marketplace.json`. Each plugin entry requires `name`, `source`, and `description`. The `strict` field controls component authority:
+Plugins are registered in `.claude-plugin/marketplace.json`. Each plugin entry requires `name`, `source`, and `description`, with `source` pointing at `./plugins/<name>`. The `strict` field controls component authority:
 
 - **`strict: true`** (default) — `plugin.json` is authoritative; marketplace supplements it.
 - **`strict: false`** — marketplace entry is the entire definition; no `plugin.json` should declare components.
 
 Use `strict: false` for skills without a `plugin.json` (e.g., standalone SKILL.md-only skills).
+
+### Isolated plugin layout
+
+Every plugin's `source` points at its own subdirectory under `./plugins/<name>`, not at the repo root. This keeps skill discovery scoped — Claude Code walks `<plugin-source>/skills/*/SKILL.md` and finds only that plugin's skill. Using a shared `source: "./"` would instead register every skill in the repo under every installed plugin's namespace.
 
 ## Build Commands
 
@@ -40,10 +49,10 @@ Skills are validated and packaged using the skill-creator tooling:
 
 ```bash
 # Validate a skill
-python3 <skill-creator-path>/scripts/quick_validate.py skills/{skill-name}
+python3 <skill-creator-path>/scripts/quick_validate.py plugins/{skill-name}/skills/{skill-name}
 
 # Package into distributable .skill file
-python3 <skill-creator-path>/scripts/package_skill.py skills/{skill-name} dist/
+python3 <skill-creator-path>/scripts/package_skill.py plugins/{skill-name}/skills/{skill-name} dist/
 ```
 
 ## References

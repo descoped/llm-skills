@@ -25,22 +25,22 @@ A collection of LLM skills for AI coding agents. Skills are customizable workflo
    /plugin https://github.com/descoped/llm-skills
    ```
 
-2. Install the `llm-skills` plugin — it bundles every skill in this repo. There's one plugin to install, not one per skill.
+2. Install only the plugins you want — each skill ships as its own isolated plugin, so installing `session-snapshot` does not pull in `claude-settings` or any other skill.
 
-3. Restart Claude Code. All skills become available under the `/llm-skills:` namespace.
+3. Restart Claude Code. Each installed skill becomes available under `/<plugin-name>:<skill-name>` (plugin and skill names are identical here, e.g. `/session-snapshot:session-snapshot`).
 
 ### Manual
 
-Copy the skill directory into your project's `.claude/skills/` or use the packaged `.skill` file from the `dist/` directory.
+Copy the skill directory (`plugins/<name>/skills/<name>/`) into your project's `.claude/skills/` or use the packaged `.skill` file from the `dist/` directory.
 
 ## Quick Start
 
-Once a skill is installed, invoke it with a slash command using the `/llm-skills:` namespace:
+Once a skill is installed, invoke it with a slash command using the plugin namespace:
 
 ```
-/llm-skills:github-issues-workflow
-/llm-skills:code-review
-/llm-skills:claude-settings
+/github-issues-workflow:github-issues-workflow
+/code-review:code-review
+/claude-settings:claude-settings
 ```
 
 You can also mention the skill's purpose in plain language — Claude will trigger the skill automatically based on its description. For example, saying "help me find a domain name for my new project" triggers `domain-finder`.
@@ -283,35 +283,45 @@ Saves and restores Claude Code session state across `/compact` boundaries. Write
 ## Repository Structure
 
 ```
-skills/                          Skill source directories
+plugins/                                 One isolated plugin per skill
   github-issues-workflow/
-    SKILL.md                     Skill metadata and instructions
-    scripts/                     Executable templates
-    references/                  Tech stack and command specifications
-    assets/                      Issue/PR templates, Claude command templates
+    skills/github-issues-workflow/
+      SKILL.md                           Skill metadata and instructions
+      scripts/                           Executable templates
+      references/                        Tech stack and command specifications
+      assets/                            Issue/PR templates, Claude command templates
   code-review/
-    SKILL.md                     Generator workflow
-    references/                  Categories and tech-specific checks
-    assets/                      Command template
+    skills/code-review/
+      SKILL.md                           Generator workflow
+      references/                        Categories and tech-specific checks
+      assets/                            Command template
   claude-settings/
-    SKILL.md                     Settings configuration workflow
-    references/                  Schema reference and patterns
+    skills/claude-settings/
+      SKILL.md                           Settings configuration workflow
+      references/                        Schema reference and patterns
   domain-finder/
-    SKILL.md                     Domain name discovery workflow
-    references/                  Naming strategies and availability checks
+    skills/domain-finder/
+      SKILL.md                           Domain name discovery workflow
+      references/                        Naming strategies and availability checks
   statusline/
-    SKILL.md                     Install + customize workflow
-    assets/statusline.sh         Self-contained status line script
-    references/                  Post-install customization guide
+    skills/statusline/
+      SKILL.md                           Install + customize workflow
+      assets/statusline.sh               Self-contained status line script
+      references/                        Post-install customization guide
   vite-chunk-split/
-    SKILL.md                     Chunk-split workflow (React/Vue/SvelteKit)
+    skills/vite-chunk-split/
+      SKILL.md                           Chunk-split workflow (React/Vue/SvelteKit)
   slack-message/
-    SKILL.md                     Skill metadata and instructions
+    skills/slack-message/
+      SKILL.md                           Skill metadata and instructions
   session-snapshot/
-    SKILL.md                     Save + restore workflow (pre-/post-compact)
+    skills/session-snapshot/
+      SKILL.md                           Save + restore workflow (pre-/post-compact)
 .claude-plugin/
-  marketplace.json               Skills manifest for Claude Code
+  marketplace.json                       Plugin manifest for Claude Code
 ```
+
+Each plugin directory is self-contained: installing one plugin never registers skills belonging to another, because each plugin's `source` points only at its own directory.
 
 ## License
 
