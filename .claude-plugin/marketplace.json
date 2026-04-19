@@ -10,74 +10,18 @@
   },
   "plugins": [
     {
-      "name": "github-issues-workflow",
-      "description": "Issue-driven development workflow for monorepo projects with GitHub issue templates, PR templates, labels, and Claude Code commands",
+      "name": "llm-skills",
+      "description": "Collection of LLM skills for AI coding agents: GitHub issue workflow, code review, Claude Code settings, domain finder, status line, Vite chunk splitting, Slack message formatting, and session snapshots for /compact handoffs",
       "source": "./",
       "strict": false,
       "skills": [
-        "./skills/github-issues-workflow"
-      ]
-    },
-    {
-      "name": "slack-message",
-      "description": "Write Slack messages — plain text with Slack markup, direct and concise, copy-paste ready",
-      "source": "./",
-      "strict": false,
-      "skills": [
-        "./skills/slack-message"
-      ]
-    },
-    {
-      "name": "code-review",
-      "description": "Generate a project-specific clean code review command. Auto-detects tech stacks and produces a /{PREFIX}-code-review command tailored to the repo's modules, architecture, and languages",
-      "source": "./",
-      "strict": false,
-      "skills": [
-        "./skills/code-review"
-      ]
-    },
-    {
-      "name": "claude-settings",
-      "description": "Configure Claude Code project settings for autonomous, unattended work. Sets up .claude/settings.json and .claude/settings.local.json with permissions, hooks, env vars, and plugins tailored to the project's tech stack",
-      "source": "./",
-      "strict": false,
-      "skills": [
-        "./skills/claude-settings"
-      ]
-    },
-    {
-      "name": "domain-finder",
-      "description": "Find creative, available domain names for projects and businesses. Generates candidates across 5 naming strategies (invented words, blends, metaphors, compressed phrases, modified words), checks real availability via whois, and iterates until the user finds one they love",
-      "source": "./",
-      "strict": false,
-      "skills": [
-        "./skills/domain-finder"
-      ]
-    },
-    {
-      "name": "statusline",
-      "description": "Install and customize the Claude Code status line. Self-contained Bash script showing project, auto-compressed path, git branch with dirty-state flags, model with context window and thinking level, context-usage bar with tokens, and session cost. Handles global or project-scoped install, merges settings.json safely, and documents color/segment/threshold customization",
-      "source": "./",
-      "strict": false,
-      "skills": [
-        "./skills/statusline"
-      ]
-    },
-    {
-      "name": "vite-chunk-split",
-      "description": "Fix Vite single-chunk bundles that cause slow page loads and break MCP Playwright testing. Auto-detects heavy dependencies, converts static page imports to React.lazy, adds Suspense boundaries in layout components, and configures vendor chunk splitting in vite.config.ts. Works for React, Vue, and SvelteKit Vite projects",
-      "source": "./",
-      "strict": false,
-      "skills": [
-        "./skills/vite-chunk-split"
-      ]
-    },
-    {
-      "name": "session-snapshot",
-      "description": "Save and restore Claude Code session state across /compact boundaries. Writes a dated handoff markdown to .claude/session-state/ before compact (goal, locked-in decisions, WIP, next-step sequence, open questions, key file anchors) and reads + deletes the most recent file after compact to rehydrate context. Project-local, gitignored, privacy-guarded",
-      "source": "./",
-      "strict": false,
-      "skills": [
+        "./skills/github-issues-workflow",
+        "./skills/slack-message",
+        "./skills/code-review",
+        "./skills/claude-settings",
+        "./skills/domain-finder",
+        "./skills/statusline",
+        "./skills/vite-chunk-split",
         "./skills/session-snapshot"
       ]
     }

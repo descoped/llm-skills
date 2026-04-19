@@ -25,9 +25,9 @@ A collection of LLM skills for AI coding agents. Skills are customizable workflo
    /plugin https://github.com/descoped/llm-skills
    ```
 
-2. Select a skill from the plugin browser to install it.
+2. Install the `llm-skills` plugin — it bundles every skill in this repo. There's one plugin to install, not one per skill.
 
-3. Restart Claude Code for the skill to become available.
+3. Restart Claude Code. All skills become available under the `/llm-skills:` namespace.
 
 ### Manual
 
