@@ -80,6 +80,15 @@
       "skills": [
         "./skills/session-snapshot"
       ]
+    },
+    {
+      "name": "claude-rules",
+      "description": "Port a user's coding conventions from one project (or from ~/.claude/CLAUDE.md) into correct, stack-adapted .claude/rules/ files in another project — translating build, test, lint, and framework commands to the target's language and tooling. Handles polyglot repos via path-scoped rules. Stack-aware for Rust, Python, Go, TypeScript, React, Next.js, Svelte 5, Swift/iOS, Kotlin/Android, Java, Terraform/OpenTofu. Also handles bootstrap-from-scratch and the foundational questions (where rules go, how .claude/rules/ loads, when to split a bloated CLAUDE.md)",
+      "source": "./plugins/claude-rules",
+      "strict": false,
+      "skills": [
+        "./skills/claude-rules"
+      ]
     }
   ]
 }

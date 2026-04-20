@@ -11,3 +11,6 @@ cmake-build-*/
 
 # Skill build output
 dist/
+
+# Skill-creator eval workspaces (ephemeral)
+**/*-workspace/

@@ -14,6 +14,7 @@ A collection of LLM skills for AI coding agents. Skills are customizable workflo
 | [vite-chunk-split](#vite-chunk-split) | Fix Vite single-chunk bundles that slow page loads |
 | [slack-message](#slack-message) | Write Slack messages with proper Slack markup |
 | [session-snapshot](#session-snapshot) | Save and restore Claude Code session state across `/compact` boundaries |
+| [claude-rules](#claude-rules) | Port coding conventions from one project to another, stack-adapted — Rust, Python, Go, TypeScript, React, Next.js, Svelte, Swift, Kotlin, Java, Terraform/OpenTofu |
 
 ## Installation
 
@@ -280,6 +281,44 @@ Saves and restores Claude Code session state across `/compact` boundaries. Write
 
 ---
 
+## claude-rules
+
+Produces correct, stack-adapted `.claude/rules/` files (and a trim root `CLAUDE.md`) for a target project, driven by the user's existing conventions. Stack-aware: build, test, lint, and framework commands are translated to the target's actual language and tooling, not copy-pasted.
+
+**Three modes, one workflow:**
+
+| Mode | When | What it does |
+|---|---|---|
+| `port` | You have conventions in another project or `~/.claude/CLAUDE.md` | Reads source, classifies each rule (universal / process / stack-specific / personal), translates commands to the target's stack, writes the result |
+| `bootstrap` | Fresh project | Detects stack from marker files, produces sensible rules using stack defaults plus anything the user adds in chat |
+| `update` | Existing project, stack or conventions changed | Refreshes rules without clobbering existing content — merge, never overwrite |
+
+**Supported stacks** (one focused reference file per stack, loaded only when relevant):
+
+| Language / framework | What it covers |
+|---|---|
+| Rust | Cargo, rustfmt, clippy `-D warnings`, thiserror/anyhow, unsafe policy, workspace layout |
+| Python | uv, ruff, pyright/mypy, pytest, async + typing, package manager choice |
+| Go | gofmt, goimports, golangci-lint, error wrapping with `%w`, context propagation, race testing |
+| TypeScript (base) | Biome or ESLint+Prettier, strict mode, Zod at boundaries, no barrels, ESM |
+| React | React 19 defaults, hooks rules, server vs client state, Testing Library |
+| Next.js | App Router, server components, server actions, data fetching patterns |
+| Svelte 5 | Runes (`$state`/`$derived`/`$effect`/`$props`), SvelteKit form actions, snippets |
+| Swift/iOS | Swift 6 strict concurrency, `actor`, SwiftUI vs UIKit, Swift Testing |
+| Kotlin/Android | Kotlin 2.x, coroutines, Jetpack Compose, `StateFlow`, Hilt |
+| Java | Java 21, records, sealed types, virtual threads, Spring patterns |
+| Terraform / OpenTofu | Remote state + locking, plan-then-apply, version pinning, `for_each` over `count`, `moved {}` blocks, Terragrunt |
+
+**Key properties:**
+
+- **Merge-safe by default** — produces a diff-style proposal (`Will create` / `Will modify` / `Will skip`) before touching the filesystem. Existing target rules are additively merged, never overwritten.
+- **Polyglot repos handled** via `paths:` frontmatter per stack — each stack reference includes the exact glob pattern for its subtree.
+- **Reads non-Claude convention files too** — `AGENTS.md`, `.cursor/rules/*.mdc`, `.github/copilot-instructions.md` are valid sources when porting.
+- **Load-time correctness** — output uses auto-discovery under `.claude/rules/` (no redundant `@import` blocks), correct `paths:` frontmatter (never Cursor-style `globs:` / `alwaysApply:`), and the right file for personal vs shared rules (`CLAUDE.local.md` vs `.claude/rules/`).
+- **Also answers the foundational questions** — where a rule should live, how loading works, when to split a bloated CLAUDE.md. Reference files cover the full load-time mechanics of tree-walk, `paths:`, `@import`, subdirectory CLAUDE.md, `claudeMdExcludes`, `/memory`, and the `InstructionsLoaded` hook.
+
+---
+
 ## Repository Structure
 
 ```
@@ -317,6 +356,14 @@ plugins/                                 One isolated plugin per skill
   session-snapshot/
     skills/session-snapshot/
       SKILL.md                           Save + restore workflow (pre-/post-compact)
+  claude-rules/
+    skills/claude-rules/
+      SKILL.md                           Port/adapt/bootstrap workflow
+      references/
+        loading.md                       Load-time mechanics reference
+        splitting-guide.md               How to split a bloated CLAUDE.md
+        templates.md                     Rule file starter templates
+        stacks/                          Per-stack conventions (11 files)
 .claude-plugin/
   marketplace.json                       Plugin manifest for Claude Code
 ```
