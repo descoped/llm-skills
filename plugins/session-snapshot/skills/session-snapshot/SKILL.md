@@ -10,7 +10,10 @@ description: >
   `/session-snapshot list`. The skill writes a dated markdown file to `.claude/session-state/`
   before compact and reads + deletes the most recent file after compact, rehydrating the
   working context so the next turn resumes with full intent, decisions, and the next-step
-  sequence intact.
+  sequence intact. On restore, the skill re-anchors on `~/.claude/CLAUDE.md`, the project's
+  `CLAUDE.md`, and `.claude/rules/` before the snapshot's next step is acted on, so post-compact
+  work stays consistent with the user's conventions instead of drifting into whatever the
+  snapshot happened to name first.
 ---
 
 # Session Snapshot
@@ -160,27 +163,54 @@ List `.claude/session-state/*.md`. If empty, tell the user "No snapshot found in
 
 If multiple files exist, pick the one with the newest timestamp prefix (highest-sorting filename). Mention if there are older files; leave them alone unless the user asks to clean up.
 
-### Step 2 — Read the file in full
+### Step 2 — Read the snapshot file
 
-Use the `Read` tool on the file. Don't summarize it to the user verbatim — instead, in your own words, tell them in 3–5 lines:
+Use the `Read` tool on the file. Hold what it says — don't summarize to the user yet; the summary waits until after Step 3 so it can flag any rule conflicts surfaced during refresh.
+
+### Step 3 — Refresh memory before anything else
+
+`/compact` preserves the CLAUDE.md files in the system prompt, but the model's working attention has been truncated — rules and user conventions that felt salient before compact often don't get re-consulted post-compact, and the next action drifts into whatever the snapshot happened to name first. Restore is the moment to re-anchor. Do this **before** interpreting the snapshot's next-step sequence and **before** any tool call that isn't a Read.
+
+Load in this order:
+
+1. **User global memory** — `Read ~/.claude/CLAUDE.md`. If it contains `@import` references, follow one hop (the docs allow up to 5; one is enough for sanity).
+2. **Project root CLAUDE.md** — `Read <project-root>/CLAUDE.md` if it exists. Also read `CLAUDE.local.md` if present.
+3. **Nested CLAUDE.md** — if the snapshot's "Key anchors" point into a subdirectory, `Read` the nearest `CLAUDE.md` up the tree from that anchor (skip if it's the root file already read).
+4. **`.claude/rules/`** — `Glob .claude/rules/**/*.md`. `Read` each. For rules with `paths:` frontmatter, mentally scope them to the globs they declare — they apply only when the next-step sequence touches matching files. Rules without `paths:` apply unconditionally.
+5. **Auto-memory index** — if `~/.claude/projects/<project>/memory/MEMORY.md` exists, `Read` it. Don't preload every individual memory file; the index is enough to know what's available.
+
+Then, with the snapshot and rules both in working context, cross-check:
+
+- Does the snapshot's "Next-step sequence" violate any rule? (e.g., snapshot says "add a comment explaining the fix" but a rule says "default to no comments").
+- Does any rule's tooling (build, test, lint command) differ from what the snapshot's "How to resume" proposes? If yes, the rule wins.
+- Are there any `feedback` memories in the auto-memory index that contradict the snapshot's plan?
+
+If a conflict exists, flag it in the Step 4 summary so the user can adjudicate before work resumes.
+
+### Step 4 — Summarize to the user
+
+In your own words, tell them in 3–5 lines:
 
 - What the active goal was.
 - What's the very next thing to do.
 - Whether there are open questions blocking progress.
+- **Any conflicts found in Step 3** between the snapshot's plan and the project/user rules — one line per conflict, naming the rule file.
 
-This both confirms the restore worked and gives the user a chance to redirect before the next action. Don't dump the whole file back to them — they already know the content; this is a handoff check, not a read-aloud.
+Don't dump the whole file back to them — they already know the content; this is a handoff check, not a read-aloud. If no conflicts were found, say so explicitly ("Checked against `~/.claude/CLAUDE.md`, project CLAUDE.md, and `.claude/rules/*` — no conflicts.") so the user knows the refresh actually happened.
 
-### Step 3 — Delete the file
+### Step 5 — Delete the file
 
-After reading, delete it. Rationale: snapshots are pre-compact handoffs, not long-term records. If a piece of the snapshot belongs in permanent project memory (e.g., an architectural decision), the conversation that resumes will promote it into `ai_docs/`, a CLAUDE.md, or an auto-memory entry — with proper privacy review. The snapshot file has served its purpose once it's been read.
+After reading and summarizing, delete it. Rationale: snapshots are pre-compact handoffs, not long-term records. If a piece of the snapshot belongs in permanent project memory (e.g., an architectural decision), the conversation that resumes will promote it into `ai_docs/`, a CLAUDE.md, or an auto-memory entry — with proper privacy review. The snapshot file has served its purpose once it's been read.
 
 Use `Bash`: `rm <path>`. Don't ask permission — this is the documented, expected lifecycle. The user already agreed to it by invoking `restore`.
 
 If the user explicitly says "don't delete", use `mv <file> <file>.archived` instead so the next `restore` doesn't pick it up.
 
-### Step 4 — Next-turn behavior
+### Step 6 — Stop and wait for the user
 
-After restore, the next user turn is the real work. Don't do anything further until they speak — restore is pure context rehydration. Exception: if the snapshot's "How to resume" step 1 is purely informational (e.g., "run `git status`") and non-destructive, you *may* run it immediately so the user sees the state when they come back. Use judgment; err on the side of waiting.
+After restore + memory refresh + delete, **stop**. Do not start executing the snapshot's "How to resume" sequence, and do not pick up any "outstanding" item from "Work in progress" on your own. The user's next turn is where the real work resumes — they may want to redirect based on the Step 4 summary, or they may have new information that changes the plan.
+
+No exceptions for "purely informational" commands. Even a read-only `git status` can burn user attention on output they didn't ask for at this moment; wait until the user speaks.
 
 ---
 
@@ -220,6 +250,8 @@ Offer to delete archived files older than N days if there are more than two.
 
 Claude Code's `/compact` replaces conversation history with a model-generated summary. The summary is strong on "what happened" but weak on "what's decided, what's next, what's blocked, what not to re-argue". In long sessions — multi-day feature work, release prep, architecture exploration — the lossy summary becomes the bottleneck: the next turn starts by re-asking questions already settled, or by re-deriving conclusions already reached.
 
-A session snapshot shifts the load: before compact, Claude + user jointly produce a terse, high-signal handoff doc. After compact, Claude reads it and resumes. The doc is ephemeral by design (gitignored, deleted on restore) because its value is bounded to one compact boundary — promoting durable insights to `ai_docs/`, CLAUDE.md, or auto-memory is a separate, explicit step with its own privacy review.
+A session snapshot shifts the load: before compact, Claude + user jointly produce a terse, high-signal handoff doc. After compact, Claude reads it, re-anchors on the user's and project's governing rules, and only then resumes. The doc is ephemeral by design (gitignored, deleted on restore) because its value is bounded to one compact boundary — promoting durable insights to `ai_docs/`, CLAUDE.md, or auto-memory is a separate, explicit step with its own privacy review.
+
+The mandatory memory refresh on restore exists because a snapshot, by itself, is a description of *what* to do next — not a description of *how this user and project want things done*. Those "how" constraints live in `~/.claude/CLAUDE.md`, the project's `CLAUDE.md`, and `.claude/rules/`, and they survive `/compact` in the system prompt but not necessarily in Claude's working attention. Re-reading them at restore keeps the next action consistent with the user's conventions instead of drifting into whatever approach the compacted summary most recently emphasized.
 
 The privacy guardrail in `save` isn't decoration — without it, snapshots become a new channel for environment data to leak (into gitignored files that someone later un-gitignores, into `/tmp` copies, into pastes for debugging). Treat the snapshot file like a commit: nothing goes in that you wouldn't be comfortable with a colleague reading cold.
